@@ -1,18 +1,30 @@
 package com.fawepark.veralert;
 
-import java.sql.Date;
-import java.text.DateFormat;
+import android.content.Context;
+import android.text.format.DateFormat;
+import android.text.format.Time;
 
 public class DBTuple {
-    static private DateFormat dateformatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM);
-    static public int SequenceCnt = 1;
-    public int ID = SequenceCnt++;
-    public String Message;
-    public int AlertType;
-    public long TimeStamp;
+	public int id;
+    public String message;
+    public int alertType;
+    public long timeStamp;
+    public int veraId;
     public boolean Selected = false;
 
-    public String TimeString() {
-        return dateformatter.format(new Date(TimeStamp));
+    public String TimeString(Context context) {
+    	String time;
+    	String date = DateFormat.getDateFormat(context).format(timeStamp);
+    	Time t = new Time();
+    	
+    	t.set(timeStamp);
+    	
+    	if (DateFormat.is24HourFormat(context)) {
+    		time = t.format("%H:%M:%S");
+    	} else {
+    		time = t.format("%l:%M:%S %P");
+    	}
+    	
+        return date + " " + time;
     }
 }

@@ -1,68 +1,212 @@
 package com.fawepark.veralert;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.ContentResolver;
-import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
-import android.util.Log;
-import android.widget.Toast;
-import com.google.android.c2dm.C2DMBaseReceiver;
-import com.google.android.c2dm.C2DMessaging;
-import com.google.android.c2dm.Config;
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
-/**
- * Broadcast receiver that handles Android Cloud to Data Messaging (AC2DM) messages, initiated
- */
-public class C2DMReceiver extends C2DMBaseReceiver {
-    static final String TAG = "Veralert C2DM";
-    private DBSource dbSource = null;
-    
-    public C2DMReceiver() {
-        super(Config.C2DM_SENDER);
-        Log.i(TAG,"A c2dm recv has been constructed..");
-    }
-    
-    @Override
-    public void onDestroy() {
-        if (dbSource != null) {
-            dbSource.close();
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.util.Log;
+import android.widget.Toast;
+
+public class C2DMReceiver extends BroadcastReceiver {
+    private static final String TAG = "Veralert C2DM";
+    public static final String EXTRAS_MSG = "msg";
+    public static final String EXTRAS_TYPE = "type";
+    public static final String EXTRAS_TONE = "tone";
+    public static final String EXTRAS_FROM = "from";
+    public static final String EXTRAS_TIME = "time";
+    public static final String EXTRAS_COLLAPSE_KEY = "collapse_key";
+    public static final String EXTRAS_PRIORITY = "priority";
+    private static final String TYPE_ALERT = "alert";
+
+	@Override
+	public void onReceive(Context context, Intent intent) {
+		String action = intent.getAction();
+		Log.w("C2DM", "Registration Receiver called");
+		
+		if (action.equals("com.google.android.c2dm.intent.REGISTRATION")) {
+			HandleRegistration(context, intent);
+		}
+		
+		if (action.equals("com.google.android.c2dm.intent.RECEIVE")) {
+			HandleMessage(context, intent);
+		}
+	}
+	
+	private void HandleRegistration(Context context, Intent intent)
+	{
+		
+		Log.w("C2DM", "Received registration ID");
+		String registrationId = intent.getStringExtra("registration_id");
+		String unregistered = intent.getStringExtra("unregistered");
+		String error = intent.getStringExtra("error");
+		
+        Map<String,String> dict = new HashMap<String,String>();
+
+		if (error == null) {
+			if (unregistered != null) {
+				// Unregistration received
+				if (unregistered.equals(context.getPackageName())) {
+					// Unregistration successful
+			        dict.put("id_a", Preferences.getIDString(context));
+
+			        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+			        SharedPreferences.Editor editor = sp.edit();
+			         
+			        editor.putString("RegID", "").commit();
+			    
+			        FireAndForgetUrl(context.getResources().getStringArray(R.array.alert_server)[0] + "player/c2dm/unregister", dict);
+				} else {
+					// Unexpected
+				}
+			}
+			else {
+				// Registration successful
+		        dict.put("id_a", Preferences.getIDString(context));
+		        dict.put("google_cloud_id", registrationId);
+		        
+		        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+		        SharedPreferences.Editor editor = sp.edit();
+		         
+		        editor.putString("RegID", registrationId).commit();
+
+		        FireAndForgetUrl(context.getResources().getStringArray(R.array.alert_server)[0] + "player/c2dm/register", dict);
+			}
+
+		}
+		else {	
+			if (error.equals("ACCOUNT_MISSING")) {
+	            Toast.makeText(context, "Registration failed: Please add a Google account", Toast.LENGTH_LONG).show();
+			}
+			else {
+	            Toast.makeText(context, "Registration failed", Toast.LENGTH_LONG).show();
+			}
+		}
+		
+		Log.d("C2DM", "dmControl: registrationId = " + registrationId + ", error = " + error);
+	}
+	
+	private void HandleMessage(Context context, Intent intent) {
+		Log.w("C2DM", "Received message");
+        String type = intent.getExtras().getString(EXTRAS_TYPE);
+        String msg = intent.getExtras().getString(EXTRAS_MSG);
+        String tone = "";
+        long when = System.currentTimeMillis();
+
+        Log.i(TAG,"TimeStamp : "+ when);
+        Log.d(TAG,"Message type is " + type);
+        
+        Bundle extras = intent.getExtras();
+        
+        if (extras.containsKey(EXTRAS_TONE))
+        {
+        	tone = intent.getExtras().getString(EXTRAS_TONE);
         }
-        super.onDestroy();
-    }
-
-    static public void FireAndForgetUrl(String url_string, Map<String,String> dict) {
-                
+        else
+        {
+            final String match_string = "AlertTone";
+            
+            try {
+            	int index = msg.indexOf(match_string);
+            	
+                if (index > -1) {
+                    tone = msg.substring(index + match_string.length(), index + match_string.length() + 1);
+                    msg = msg.replace(match_string + tone + " ", "");
+                }
+            }
+            
+            catch (StringIndexOutOfBoundsException sioobe) {
+                Log.e(TAG, sioobe.toString());
+                // Keep calm and carry on...
+            }
+        }
+        
+        // Store the message
+        
+        DBSource src = new DBSource(context);
+        long notificationId = 0;
+        
+        src.open(true);
+        
+        notificationId = src.AddNotification(when);
+    	src.AddKeyValuePair(notificationId, EXTRAS_MSG, msg);
+    	src.AddKeyValuePair(notificationId, EXTRAS_TONE, tone);
+        
+        
+        Set<String> keySet = extras.keySet();
+        Iterator<String> iterator = keySet.iterator();
+        
+        if (keySet.contains(EXTRAS_TIME)) {
+        	String timeStamp = extras.getString(EXTRAS_TIME);
+        	
+        	try {
+        		when = Long.parseLong(timeStamp);
+        	}
+            
+            catch (NumberFormatException e) {
+            	// Value for timestamp could not be converted to a number
+            	// 'when' is already time of message reception
+            }
+        }
+        
+        while (iterator.hasNext())
+        {
+        	String key = iterator.next();
+  
+        	if (  !key.equals(EXTRAS_MSG) 
+        		& !key.equals(EXTRAS_TONE)
+         		& !key.equals(EXTRAS_FROM)
+        		& !key.equals(EXTRAS_COLLAPSE_KEY)
+        		& !key.equals(EXTRAS_PRIORITY)
+        		) {
+	        	String value = extras.getString(key);
+	        	src.AddKeyValuePair(notificationId, key, value);
+        	}
+        }
+        src.close();
+        
+        // Set the alert
+		if (type.equals(TYPE_ALERT)) {
+            AlertIndicator(context, msg, tone, when);
+        }   
+		
+	}
+	
+    private void FireAndForgetUrl(String url_string, Map<String, String> dict) {
         HttpURLConnection httpConnection = null;
         
         try {
+            String post_string = url_string + "?";
             
-            String post_string = url_string+"?";
-            
-            // + thing_to_send;
             boolean first = true;
+            
             for (String k  : dict.keySet()) {
                 if (!first) {
-                    post_string = post_string +"&";
-                } else {
+                    post_string = post_string + "&";
+                } 
+                else {
                     first = false;
                 }
-                post_string = post_string + k +"=" + URLEncoder.encode(dict.get(k));
+                
+                post_string = post_string + k + "=" + URLEncoder.encode(dict.get(k));
             }
             
-            //"&val=" +URLEncoder.encode(scanned_content, "UTF-8") ;
-            
-            Log.d(TAG,post_string);
+            Log.d(TAG, post_string);
             
             URL post_url = new URL(post_string);
             
@@ -71,73 +215,52 @@ public class C2DMReceiver extends C2DMBaseReceiver {
             int response_code = httpConnection.getResponseCode();
                         
             if (response_code == HttpURLConnection.HTTP_OK) {
-                { Log.v(TAG, "Logging scan " + post_string + " succeeded."); } 
-            } else {
-                { Log.v(TAG, "Logging scan " + post_string + " failed. Response: " + response_code); }
+               	Log.v(TAG, "Logging scan " + post_string + " succeeded."); 
+            } 
+            else {
+               	Log.v(TAG, "Logging scan " + post_string + " failed. Response: " + response_code); 
             }
             
-        } catch (MalformedURLException ex) {                    
-            { Log.e(TAG, "FireAndForget " + ex.toString()); }
-        } catch (IOException ex) {
-            { Log.e(TAG, "FireAndForget " + ex.toString()); }
-        } finally {
+        } 
+        
+        catch (MalformedURLException ex) {                    
+            Log.e(TAG, "FireAndForget " + ex.toString());
+        } 
+        
+        catch (IOException ex) {
+            Log.e(TAG, "FireAndForget " + ex.toString());
+        } 
+        
+        finally {
             if (httpConnection != null) {
                 httpConnection.disconnect();
             }
         }
     }
     
-    @Override
-    public void onError(Context context, String errorId) {
-        Toast.makeText(context, "Messaging registration error: " + errorId,
-                       Toast.LENGTH_LONG).show();
-    }
-    
-    @Override
-    public void onRegistrered(Context context, String registrationId) throws IOException {
-        Log.i(TAG,"GOT A REGISTRATION FROM THE CLOUD : " + registrationId);
-        Map<String,String> dict = new HashMap<String,String>();
-        dict.put("id_a", Preferences.getIDString(this));
-        dict.put("google_cloud_id",registrationId);
-        FireAndForgetUrl(context.getString(R.string.alert_server) + "player/c2dm/register", dict);
-    }
-
-    void AlertIndicator(Context context, String msg){
+    private void AlertIndicator(Context context, String msg, String tone, long when) {
         Log.d(TAG,"message text is " + msg);
          
-        final String match_string = "AlertTone";
         String human_msg = msg;
-        String atn = "1";
-        try {
-            if ( msg.indexOf(match_string) > -1) {
-                int i = msg.indexOf(match_string);
-                atn = msg.substring(i+match_string.length(), i+match_string.length()+1);
-                human_msg = msg.replace(match_string + atn, "");
-            }
-        }
-        catch (StringIndexOutOfBoundsException sioobe) {
-            Log.e(TAG,sioobe.toString());
-            // Keep calm and carry on...
-        }
 
         // Get the static global NotificationManager object.
         String ns = Context.NOTIFICATION_SERVICE;
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
+        NotificationManager mNotificationManager = (NotificationManager)context.getSystemService(ns);
                 
         int icon = R.drawable.icon;
         CharSequence tickerText = human_msg;
-        long when = System.currentTimeMillis();
-        Log.i(TAG,"TimeStamp : "+ when);
          
-        Intent notificationIntent = new Intent(this, Notifications.class);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+        Intent notificationIntent = new Intent(context, Notifications.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
 
         Notification n = new Notification(icon, tickerText, when);
 
-        String rt = Preferences.getAlertTone(this, atn);
-        if ( rt != "" ) {
+        String rt = Preferences.getAlertTone(context, tone);
+        
+        if (rt != "") {
             n.sound = Uri.parse(rt);
         }
+        
         n.defaults |= Notification.DEFAULT_VIBRATE;
 
         n.ledARGB = 0xffff0000;
@@ -147,78 +270,8 @@ public class C2DMReceiver extends C2DMBaseReceiver {
          
         n.setLatestEventInfo(context, "Vera Alert", human_msg, contentIntent);
          
-        // We user a string ID because it's a unique number
+        // We use a string ID because it's a unique number
         // We also use it to cancel the notification in the notification class
-        mNotificationManager.notify(R.string.alert_server, n);
-
-        DBTuple t = new DBTuple();
-        t.Message = human_msg;
-        t.AlertType = atn.charAt(0) - '0';
-        t.TimeStamp = when;
-        if (dbSource == null) {
-            dbSource = new DBSource(this);
-            dbSource.open(true);
-        }
-        dbSource.Add(t);
-    }
-   
-    @Override
-    protected void onMessage(Context context, Intent intent) {
-        Log.i(TAG,"GOT A MESSAGE FROM THE CLOUD");
-        String type = intent.getExtras().getString("type");
-        String msg = intent.getExtras().getString("msg");
-        
-        Log.d(TAG,"message type is " + type);
-        
-        if (type.equals( "alert")) {
-            AlertIndicator(context, msg );
-            return;
-        }   
-        
-        String accountName = intent.getExtras().getString(Config.C2DM_ACCOUNT_EXTRA);
-        String message = intent.getExtras().getString(Config.C2DM_MESSAGE_EXTRA);
-        if (Config.C2DM_MESSAGE_SYNC.equals(message)) {
-            if (accountName != null) {
-                if (Log.isLoggable(TAG, Log.DEBUG)) {
-                    Log.d(TAG, "Messaging request received for account " + accountName);
-                }
-            }
-        }
-    }
-
-    /**
-     * Register or unregister based on phone sync settings.
-     * Called on each performSync by the SyncAdapter.
-     */
-    public static void refreshAppC2DMRegistrationState(Context context) {
-        Log.i(TAG,"GOT A REFRESH");
-        // Determine if there are any auto-syncable accounts. If there are, make sure we are
-        // registered with the C2DM servers. If not, unregister the application.
-        boolean autoSyncDesired = false;
-        if (ContentResolver.getMasterSyncAutomatically()) {
-            //           AccountManager am = AccountManager.get(context);
-            //            Account[] accounts = am.getAccountsByType(SyncAdapter.GOOGLE_ACCOUNT_TYPE);
-            //           for (Account account : accounts) {
-            //               if (ContentResolver.getIsSyncable(account, JumpNoteContract.AUTHORITY) > 0 &&
-            //                      ContentResolver.getSyncAutomatically(account, JumpNoteContract.AUTHORITY)) {
-            //                  autoSyncDesired = true;
-            //                 break;
-            //            }
-            //     }
-        }
-
-        boolean autoSyncEnabled = !C2DMessaging.getRegistrationId(context).equals("");
-
-        if (autoSyncEnabled != autoSyncDesired) {
-            Log.i(TAG, "System-wide desirability for JumpNote auto sync has changed; " +
-                  (autoSyncDesired ? "registering" : "unregistering") +
-                  " application with C2DM servers.");
-            
-            if (autoSyncDesired == true) {
-                C2DMessaging.register(context, Config.C2DM_SENDER);
-            } else {
-                C2DMessaging.unregister(context);
-            }
-        }
+        mNotificationManager.notify(R.string.app_name, n);
     }
 }

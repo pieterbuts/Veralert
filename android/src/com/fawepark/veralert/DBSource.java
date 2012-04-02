@@ -15,7 +15,8 @@ public class DBSource {
     private SQLiteDatabase database;
     private DBHelper dbHelper;
     private Context context;
-    private String[] allColumns = {DBHelper.COLUMN_MESSAGE, DBHelper.COLUMN_ALERTTYPE, DBHelper.COLUMN_TIMESTAMP};
+    private String[] columnsNotification = {DBHelper.COLUMN_ID, DBHelper.COLUMN_TIMESTAMP};
+    private String[] columnsKeyValuePairs = {DBHelper.COLUMN_ID, DBHelper.COLUMN_VALUE};
 
     public DBSource(Context context) {
         this.context = context;
@@ -34,35 +35,151 @@ public class DBSource {
         dbHelper.close();
     }
 
+/*    
     public void Add(DBTuple t) {
         ContentValues v = new ContentValues();
         v.put(DBHelper.COLUMN_MESSAGE, t.Message);
         v.put(DBHelper.COLUMN_ALERTTYPE, t.AlertType);
         v.put(DBHelper.COLUMN_TIMESTAMP, t.TimeStamp);
-        database.insert(DBHelper.TABLE_NAME, null, v);
+        database.insert(DBHelper.TABLE_NOTIFICATIONS, null, v);
     }
+*/
+  
+    public long AddNotification(long timestamp) {
+        ContentValues v = new ContentValues();
+        v.put(DBHelper.COLUMN_TIMESTAMP, timestamp);
+        return database.insert(DBHelper.TABLE_NOTIFICATIONS, null, v);
+    }
+    
+    public long AddKeyValuePair(long notificationId, String key, String value) {
+        ContentValues v = new ContentValues();
 
+        long keyId = GetKeyId(key);
+    	
+    	if (keyId < 0)
+    	{
+    		keyId = AddKey(key);
+    	}
+    	
+    	v.put(DBHelper.COLUMN_NOTIFICATION_REF, notificationId);
+        v.put(DBHelper.COLUMN_KEY_REF, keyId);
+        v.put(DBHelper.COLUMN_VALUE, value);
+        return database.insert(DBHelper.TABLE_KEYVALUEPAIRS, null, v);
+    }
+    
+    private long GetKeyId(String key) {
+    	long keyId = -1;
+    	Cursor crsr = database.query(true,
+    					     		 DBHelper.TABLE_KEYS, 
+    			                     new String[] {DBHelper.COLUMN_ID, DBHelper.COLUMN_KEY}, 
+    			                     DBHelper.COLUMN_KEY + "=\"" + key + "\"",
+     			    	             null,
+					    	         null,
+					    	         null,
+					    	         null, 
+					    	         null);
+    
+        if (crsr != null) 
+        {
+        	if (crsr.moveToFirst())
+        	{
+        		if (crsr.getInt(1) >= 0)
+	        	{
+        			keyId = crsr.getLong(0);        			
+	        	} 
+        	}
+        }
+    	
+        return keyId;
+    }
+    
+    private long AddKey(String key) {
+        ContentValues v = new ContentValues();
+        v.put(DBHelper.COLUMN_KEY, key);
+        
+        long id = database.insert(DBHelper.TABLE_KEYS, null, v);
+        
+        return id;
+    }
+    
     public List<DBTuple> getAllData() {
         List<DBTuple> Results = new ArrayList<DBTuple>();
-        Cursor cur = database.query(DBHelper.TABLE_NAME, allColumns, null, null, null, null, null);
-        AddCursorData(Results, cur);
+        
+        Cursor cur = database.query(DBHelper.TABLE_NOTIFICATIONS, columnsNotification, null, null, null, null, null);
+        AddAlertData(Results, cur);
+        
         return(Results);
     }
 
-    private void AddCursorData(List<DBTuple> Results, Cursor cur) {
+    private void AddAlertData(List<DBTuple> Results, Cursor cur) {
         cur.moveToFirst();
+
         while (!cur.isAfterLast()) {
-            DBTuple tuple = cursorToTuple(cur);
+            DBTuple tuple = new DBTuple();
+            tuple.id = cur.getInt(0);
+            tuple.timeStamp = cur.getLong(1);
+
+            tuple.message = GetValue(tuple.id, 1);
+          	tuple.alertType = GetAlertTone(tuple.id);
+          	tuple.veraId = 0;
+          	
             Results.add(tuple);
             cur.moveToNext();
         }
+        
         // Make sure to close the cursor
         cur.close();
         LimitData(Results);
     }
-
+    
+    private int GetAlertTone(int notificationId) {
+    	String value = GetValue(notificationId, 3);
+    	int result = 0;
+    	
+        try {
+        	result = Integer.parseInt(value);
+        }
+        
+        catch (NumberFormatException e) {
+        	// Value for alerttone could not be converted to a number
+        	
+        	result = 0;
+        }
+       
+        if ((result < 1) | (result > 5)) {
+        	result = 0;
+        }
+        
+        return result;
+    }
+    
+    private String GetValue(int notificationId, int keyId) {
+        String where = DBHelper.COLUMN_NOTIFICATION_REF + " = " + notificationId + " and " + DBHelper.COLUMN_KEY_REF + " = " + keyId;
+    	Cursor cur = database.query(
+        		DBHelper.TABLE_KEYVALUEPAIRS, 
+        		columnsKeyValuePairs, 
+        		where, 
+        		null, 
+        		null, 
+        		null, 
+        		null);
+        String result = "";
+        
+        if (cur != null) 
+        {
+        	cur.moveToFirst();
+        	
+        	if (cur.moveToFirst()) {
+    			result = cur.getString(1);        			
+            }
+        }
+        
+        return result;
+    }
+    
     private void LimitData(List<DBTuple> Results) {
         int Max = Preferences.getMaxRetention(context);
+        
         if (Max == 0) return;
         
         // Sort A copy of the data by Message
@@ -70,10 +187,14 @@ public class DBSource {
         Collections.sort(TmpCpy, new Comparator<DBTuple>() {
             @Override
             public int compare(DBTuple t1, DBTuple t2) {
-                int c = t1.Message.compareTo(t2.Message);
+                int c = t1.message.compareTo(t2.message);
+                
                 if (c == 0) {
-                    if (t1.TimeStamp == t2.TimeStamp) return 0;
-                    if (t1.TimeStamp > t2.TimeStamp) { 
+                    if (t1.timeStamp == t2.timeStamp) {
+                    	return 0;
+                    }
+                    
+                    if (t1.timeStamp > t2.timeStamp) { 
                         return -1;
                     } else {
                         return 1;
@@ -82,49 +203,81 @@ public class DBSource {
                 return c;
             }
         });
+        
         // Remove if we see more than Max of any message type
         String LastMsg = "xyzzy";
         int Cnt = 1;
+        
         for (int i = 0; i < TmpCpy.size(); i++) {
             DBTuple t = TmpCpy.get(i);
-            if (LastMsg.equals(t.Message)) {
+            
+            if (LastMsg.equals(t.message)) {
                 Cnt++;
+                
                 if (Cnt > Max) {
                     Remove(t);
                     Results.remove(t);
                 }
             } else {
                 Cnt = 1;
-                LastMsg = t.Message;
+                LastMsg = t.message;
             }
         }
     }
-
-    private DBTuple cursorToTuple(Cursor cur) {
-        DBTuple Result = new DBTuple();
-        Result.Message = cur.getString(0);
-        Result.AlertType = cur.getInt(1);
-        Result.TimeStamp = cur.getLong(2);
-        return(Result);
-    }
     
     public void Remove(DBTuple t) {
-        database.delete(DBHelper.TABLE_NAME,
-                        DBHelper.COLUMN_MESSAGE + "=? and " + DBHelper.COLUMN_TIMESTAMP + "=?",
-                        new String[] {t.Message, Long.toString(t.TimeStamp)});
+        database.delete(DBHelper.TABLE_NOTIFICATIONS,
+                        DBHelper.COLUMN_ID + " = ?",
+                        new String[] {Integer.toString(t.id)});
+        database.delete(DBHelper.TABLE_KEYVALUEPAIRS,
+                        DBHelper.COLUMN_NOTIFICATION_REF + " = ?",
+                        new String[] {Integer.toString(t.id)});
     }
-    
+     
     public void GetNewData(List<DBTuple> values) {
         long max = 0;
+        
         for (int i = 0; i < values.size(); i++) {
             DBTuple t = values.get(i);
-            if (t.TimeStamp > max) max = t.TimeStamp;
+            
+            if (t.timeStamp > max) {
+            	max = t.timeStamp;
+            }
         }
-        Cursor cur = database.query(
-                                    DBHelper.TABLE_NAME, allColumns, 
+
+        Cursor cur = database.query(DBHelper.TABLE_NOTIFICATIONS, 
+        		                    columnsNotification, 
                                     DBHelper.COLUMN_TIMESTAMP + ">?", 
                                     new String[] {Long.toString(max)}, 
                                     null, null, null);
-        AddCursorData(values, cur);     
+        AddAlertData(values, cur);     
+    }
+    
+    public String AlertPropertiesText(int alertId) {
+    	String props = "";
+    	
+        String qry = 
+        		"select Keys.Key, kvp.Value"
+        		+ " from Keys"
+        		+ " join"
+        		+ " KeyValuePairs as kvp"
+        		+ " on Keys.ID = kvp.KeyReference"
+         		+ " where kvp.NotificationReference = " + alertId
+         		+ " order by Keys.ID";
+        
+        Cursor cur = database.rawQuery(qry,	null);
+        
+        if (cur != null) {
+	        cur.moveToFirst();
+	
+	        while (!cur.isAfterLast()) {
+	        	props += "[" + cur.getString(0) + "]: ";
+	        	props += "   " + cur.getString(1) + "\n";
+	        	
+	            cur.moveToNext();
+	        }
+        }
+    	
+    	return props;
     }
 }

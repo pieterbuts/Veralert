@@ -1,76 +1,99 @@
 package com.fawepark.veralert;
 
-import android.app.PendingIntent;
+import java.util.UUID;
+
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
+import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.Toast;
-
-import java.util.UUID;
  
 public class Preferences extends PreferenceActivity {
-    private static final String notifications = "Notifications";
+	private Preference mPreferenceAlert1;  
+	private Preference mPreferenceAlert2;  
+	private Preference mPreferenceAlert3;  
+	private Preference mPreferenceAlert4;  
+	private Preference mPreferenceAlert5;  
 
-    @Override
+	
+	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-       addPreferencesFromResource(R.xml.preferences);
+        addPreferencesFromResource(R.xml.preferences);
+
+        mPreferenceAlert1 = this.findPreference("ringtonePref1");
+        mPreferenceAlert2 = this.findPreference("ringtonePref2");
+        mPreferenceAlert3 = this.findPreference("ringtonePref3");
+        mPreferenceAlert4 = this.findPreference("ringtonePref4");
+        mPreferenceAlert5 = this.findPreference("ringtonePref5");
+        
         // Get the custom preference
 
-        String ID =  getIDString(this);
+        String ID = getIDString(this);
+        
         if (ID.equals("")) {
             ID = scrambleIDS();
             Toast t = Toast.makeText(this, "ID used is : " + ID, Toast.LENGTH_SHORT);
             t.show();  
         }
         
-        EditTextPreference RegID = (EditTextPreference) this.findPreference("RegistrationID");
+        EditTextPreference RegID = (EditTextPreference)this.findPreference("RegistrationID");
         RegID.setTitle(ID);
-        PendingIntent app = PendingIntent.getBroadcast(this, 0, new Intent(), 0);
-        Log.i(Notifications.TAG,"Attempting c2dm registration of "+ app);
-        Intent registrationIntent = new Intent("com.google.android.c2dm.intent.REGISTER");
-        registrationIntent.putExtra("app", app); // boilerplate
-        registrationIntent.putExtra("sender", this.getString(R.string.c2dm_name));
-        startService(registrationIntent);
-        Log.i(Notifications.TAG,"c2dm registration intent started");             
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-      super.onCreateOptionsMenu(menu);
-      menu.add(0, 1, 0, notifications);
-      return true;
+    protected void onResume() {
+        super.onResume();
+
+        mPreferenceAlert1.setSummary(getSummary("ringtonePref1", "Select an alert sound for AlertTone1"));
+        mPreferenceAlert2.setSummary(getSummary("ringtonePref2", "Select an alert sound for AlertTone2"));
+        mPreferenceAlert3.setSummary(getSummary("ringtonePref3", "Select an alert sound for AlertTone3"));
+        mPreferenceAlert4.setSummary(getSummary("ringtonePref4", "Select an alert sound for AlertTone4"));
+        mPreferenceAlert5.setSummary(getSummary("ringtonePref5", "Select an alert sound or ringtone for AlertTone5"));
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        String i = item.toString();
-        Log.v(Notifications.TAG,"In menu select "+ i);
-        if (i.equals(notifications)) {
-            Intent intent = new Intent(this, Notifications.class);
-            startActivity(intent);
+    private String getSummary(String preference, String defaultSummary) {
+    	String summary = "";
+        SharedPreferences sp = getDefault(this);
+        
+        String prefText = sp.getString(preference, "");
+        
+        if (prefText.equals("")) {
+        	// No ringtone selected or silent: display default text
+        	summary = defaultSummary;
         }
-        return true;
-    }    
-
+        else {
+	        Uri ringtoneUri = Uri.parse(prefText);
+	        Ringtone ringtone = RingtoneManager.getRingtone(this, ringtoneUri);
+	        summary = ringtone.getTitle(this);
+        }
+    	
+    	return summary;
+    }
+    
     private String scrambleIDS() {
         UUID idOne = UUID.randomUUID();
         Log.i(Notifications.TAG,"Created UUID of " + idOne);                  
         Long l1 = idOne.getLeastSignificantBits();
-        if ( l1 < 0) { l1 = l1 + Long.MAX_VALUE; }
+        
+        if ( l1 < 0) { 
+        	l1 = l1 + Long.MAX_VALUE; 
+        }
+        
         String token1 = Long.toString(l1, 36);  
         Editor ed = getEditor(this);
         ed.putString("ID", token1);
         ed.commit();
-        return(token1);
+        
+        return token1;
     }
 
     private static Editor getEditor(Context ctx) {
@@ -87,12 +110,14 @@ public class Preferences extends PreferenceActivity {
         SharedPreferences sp = getDefault(ctx);
         String res_string = sp.getString(pref_string, "");
         Log.i(Notifications.TAG,"using ringtone: " + res_string + " for AlertTone" + val); 
-        return(res_string);
+        
+        return res_string;
     }
 
     public static int getMaxRetention(Context ctx) {
         SharedPreferences sp = getDefault(ctx);
         String tmp = sp.getString("MaxRetention", "0");
+        
         return Integer.parseInt(tmp);
     }
 

@@ -1,26 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
-        android:title="Regitration">
-        android:title="Ring Tones"
-        android:summary="Registration Key"
-        android:defaultValue="false"
-        android:key="RegistrationPrefs">
+        android:title="Device Identifier">
         <EditTextPreference
             android:selectable="false"
             android:title="Not Registered"
+            android:summary="This is the recipient to use on your Vera"
             android:defaultValue=""
             android:key="RegistrationID"
             />
     </PreferenceCategory>
     <PreferenceCategory
         android:title="Retention">
-        android:defaultValue="true"
-        android:key="RetentionPrefs">
         <EditTextPreference
             android:selectable="true"
             android:title="Max Message Count"
-            android:summary="How many of each Unique Message Strings to keep; Select 0 for unlimitted"
+            android:summary="How many of each unique message to keep. Select 0 for unlimited"
             android:defaultValue="5"
             android:numeric="integer"
             android:key="MaxRetention"
@@ -28,10 +23,6 @@
     </PreferenceCategory>
     <PreferenceCategory
         android:title="Alert Ring Tone Preferences">
-        android:title="Ring Tones"
-        android:summary="Associate RingTones with AlertTones"
-        android:defaultValue="true"
-        android:key="ringtonePrefs">
         <RingtonePreference
             android:ringtoneType="notification|alarm"
             android:name="Alert1"
@@ -63,7 +54,7 @@
         <RingtonePreference
             android:ringtoneType="all"
             android:name="Alert5"
-            android:summary="Select an alert or ringtone for AlertTone5"
+            android:summary="Select an alert sound or ringtone for AlertTone5"
             android:title="Alert 5"
             android:key="ringtonePref5" 
             />    

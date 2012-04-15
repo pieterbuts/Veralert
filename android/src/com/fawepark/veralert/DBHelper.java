@@ -8,24 +8,24 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 public class DBHelper  extends SQLiteOpenHelper {
-    private static final String DATABASE_NAME = "VeraAlerts.db";
-    private static final int DATABASE_VERSION = 2;
-    public static final String TABLE_NOTIFICATIONS_ORG = "Notifications";
-    public static final String TABLE_NOTIFICATIONS = "Notifications2";
-    public static final String TABLE_KEYS = "Keys";
-    public static final String TABLE_KEYVALUEPAIRS = "KeyValuePairs";
-    public static final String COLUMN_ID = "ID";
-    public static final String COLUMN_MESSAGE = "Message";
-    public static final String COLUMN_MSG = "msg";
-    public static final String COLUMN_ALERTTYPE = "AlertType";
-    public static final String COLUMN_TIMESTAMP = "TimeStamp";
-    public static final String COLUMN_KEY = "Key";
-    public static final String COLUMN_VALUE = "Value";
-    public static final String COLUMN_NOTIFICATION_REF = "NotificationReference";
-    public static final String COLUMN_KEY_REF = "KeyReference";
-    private static final int msgKeyId = 1;
-    private static final int typeKeyId = 2;
-    private static final int alertToneKeyId = 3;
+	private static final String DATABASE_NAME = "VeraAlerts.db";
+	private static final int DATABASE_VERSION = 2;
+	private static final int msgKeyId = 1;
+	private static final int typeKeyId = 2;
+	private static final int alertToneKeyId = 3;
+
+	public static final String TABLE_NOTIFICATIONS_ORG = "Notifications";
+	public static final String TABLE_NOTIFICATIONS = "Notifications2";
+	public static final String TABLE_KEYS = "Keys";
+	public static final String TABLE_KEYVALUEPAIRS = "KeyValuePairs";
+	public static final String COLUMN_ID = "ID";
+	public static final String COLUMN_MESSAGE = "Message";
+	public static final String COLUMN_ALERTTYPE = "AlertType";
+	public static final String COLUMN_TIMESTAMP = "TimeStamp";
+	public static final String COLUMN_KEY = "Key";
+	public static final String COLUMN_VALUE = "Value";
+	public static final String COLUMN_NOTIFICATION_REF = "NotificationReference";
+	public static final String COLUMN_KEY_REF = "KeyReference";
 
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -59,17 +59,17 @@ public class DBHelper  extends SQLiteOpenHelper {
         
     	ContentValues initialValues = new ContentValues();
         initialValues.put(COLUMN_ID, msgKeyId);
-        initialValues.put(COLUMN_KEY, C2DMReceiver.EXTRAS_MSG);
+        initialValues.put(COLUMN_KEY, C2DMIntentHandler.EXTRAS_MSG);
         database.insert(TABLE_KEYS, null, initialValues);
     	
     	initialValues = new ContentValues();
         initialValues.put(COLUMN_ID, typeKeyId);
-        initialValues.put(COLUMN_KEY, C2DMReceiver.EXTRAS_TYPE);
+        initialValues.put(COLUMN_KEY, C2DMIntentHandler.EXTRAS_TYPE);
         database.insert(TABLE_KEYS, null, initialValues);
     	
     	initialValues = new ContentValues();
         initialValues.put(COLUMN_ID, alertToneKeyId);
-        initialValues.put(COLUMN_KEY, C2DMReceiver.EXTRAS_TONE);
+        initialValues.put(COLUMN_KEY, C2DMIntentHandler.EXTRAS_TONE);
         database.insert(TABLE_KEYS, null, initialValues);
     }
         
@@ -125,6 +125,8 @@ public class DBHelper  extends SQLiteOpenHelper {
     	        	
     	            db.execSQL("DROP TABLE IF EXISTS " + TABLE_NOTIFICATIONS_ORG);
             	}
+                
+                crsr.close();
             }
         } else {
         	Log.w(DBHelper.class.getName(),

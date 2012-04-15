@@ -8,24 +8,27 @@
     <permission android:name="com.fawepark.veralert.permission.C2D_MESSAGE" android:protectionLevel="signature" />
     <uses-permission android:name="com.fawepark.veralert.permission.C2D_MESSAGE" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-    <uses-permission android:name="com.fawepark.veralert.permission.RECEIVE" />
+    <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.VIBRATE" />
+ 	<uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <uses-sdk android:minSdkVersion="8"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application 
         android:icon="@drawable/icon" 
         android:label="@string/app_name"
         android:theme="@style/MyTheme">
         <activity android:name=".Preferences" android:label="@string/set_preferences"/>
-        <activity android:name=".Notifications" android:label="@string/app_notifications">
+        <activity android:name=".Notifications" 
+                  android:label="@string/app_notifications"
+                  android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".C2DMReceiver" />
+
+        <service android:name=".C2DMIntentHandler" />
   
         <!-- Only C2DM servers can send messages for the app. If permission is not set - any other app can generate it --> 
         <receiver 
@@ -33,7 +36,7 @@
             android:permission="com.google.android.c2dm.permission.SEND">
             <!-- Receive the actual message -->
             <intent-filter>
-            <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+	            <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <category android:name="com.fawepark.veralert" />
             </intent-filter>
             <!-- Receive the registration id -->
@@ -42,5 +45,5 @@
                 <category android:name="com.fawepark.veralert" />
             </intent-filter>
         </receiver>
-    </application>
+        </application>
 </manifest>

@@ -35,16 +35,6 @@ public class DBSource {
         dbHelper.close();
     }
 
-/*    
-    public void Add(DBTuple t) {
-        ContentValues v = new ContentValues();
-        v.put(DBHelper.COLUMN_MESSAGE, t.Message);
-        v.put(DBHelper.COLUMN_ALERTTYPE, t.AlertType);
-        v.put(DBHelper.COLUMN_TIMESTAMP, t.TimeStamp);
-        database.insert(DBHelper.TABLE_NOTIFICATIONS, null, v);
-    }
-*/
-  
     public long AddNotification(long timestamp) {
         ContentValues v = new ContentValues();
         v.put(DBHelper.COLUMN_TIMESTAMP, timestamp);
@@ -88,6 +78,8 @@ public class DBSource {
         			keyId = crsr.getLong(0);        			
 	        	} 
         	}
+        	
+        	crsr.close();
         }
     	
         return keyId;
@@ -105,8 +97,12 @@ public class DBSource {
     public List<DBTuple> getAllData() {
         List<DBTuple> Results = new ArrayList<DBTuple>();
         
-        Cursor cur = database.query(DBHelper.TABLE_NOTIFICATIONS, columnsNotification, null, null, null, null, null);
-        AddAlertData(Results, cur);
+        Cursor crsr = database.query(DBHelper.TABLE_NOTIFICATIONS, columnsNotification, null, null, null, null, null);
+        
+        if (crsr != null) {
+        	AddAlertData(Results, crsr);
+        	crsr.close();
+        }
         
         return(Results);
     }
@@ -127,8 +123,6 @@ public class DBSource {
             cur.moveToNext();
         }
         
-        // Make sure to close the cursor
-        cur.close();
         LimitData(Results);
     }
     
@@ -155,7 +149,7 @@ public class DBSource {
     
     private String GetValue(int notificationId, int keyId) {
         String where = DBHelper.COLUMN_NOTIFICATION_REF + " = " + notificationId + " and " + DBHelper.COLUMN_KEY_REF + " = " + keyId;
-    	Cursor cur = database.query(
+    	Cursor crsr = database.query(
         		DBHelper.TABLE_KEYVALUEPAIRS, 
         		columnsKeyValuePairs, 
         		where, 
@@ -165,14 +159,16 @@ public class DBSource {
         		null);
         String result = "";
         
-        if (cur != null) 
+        if (crsr != null) 
         {
-        	cur.moveToFirst();
+        	crsr.moveToFirst();
         	
-        	if (cur.moveToFirst()) {
-    			result = cur.getString(1);        			
+        	if (crsr.moveToFirst()) {
+    			result = crsr.getString(1);        			
             }
-        }
+        	
+        	crsr.close();
+       }
         
         return result;
     }
@@ -204,7 +200,8 @@ public class DBSource {
             }
         });
         
-        // Remove if we see more than Max of any message type
+        // Remove if we see more than Max of any message
+        
         String LastMsg = "xyzzy";
         int Cnt = 1;
         
@@ -245,16 +242,19 @@ public class DBSource {
             }
         }
 
-        Cursor cur = database.query(DBHelper.TABLE_NOTIFICATIONS, 
-        		                    columnsNotification, 
-                                    DBHelper.COLUMN_TIMESTAMP + ">?", 
-                                    new String[] {Long.toString(max)}, 
-                                    null, null, null);
-        AddAlertData(values, cur);     
+        Cursor crsr = database.query(DBHelper.TABLE_NOTIFICATIONS, 
+        		                     columnsNotification, 
+                                     DBHelper.COLUMN_TIMESTAMP + ">?", 
+                                     new String[] {Long.toString(max)}, 
+                                     null, null, null);
+        if (crsr != null) {
+        	AddAlertData(values, crsr);
+        	crsr.close();
+        }    	
     }
     
-    public String AlertPropertiesText(int alertId) {
-    	String props = "";
+    public List<AlertProperty> GetAlertProperties(int alertId) {
+    	List<AlertProperty> properties = new ArrayList<AlertProperty>();
     	
         String qry = 
         		"select Keys.Key, kvp.Value"
@@ -265,19 +265,22 @@ public class DBSource {
          		+ " where kvp.NotificationReference = " + alertId
          		+ " order by Keys.ID";
         
-        Cursor cur = database.rawQuery(qry,	null);
+        Cursor crsr = database.rawQuery(qry,	null);
         
-        if (cur != null) {
-	        cur.moveToFirst();
+        if (crsr != null) {
+	        crsr.moveToFirst();
 	
-	        while (!cur.isAfterLast()) {
-	        	props += "[" + cur.getString(0) + "]: ";
-	        	props += "   " + cur.getString(1) + "\n";
+	        while (!crsr.isAfterLast()) {
+	        	AlertProperty property = new AlertProperty(crsr.getString(0), crsr.getString(1));
 	        	
-	            cur.moveToNext();
+	        	properties.add(property);
+
+	        	crsr.moveToNext();
 	        }
+	        
+	        crsr.close();
         }
     	
-    	return props;
+    	return properties;
     }
 }

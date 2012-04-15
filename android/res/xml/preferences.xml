@@ -1,61 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
-        android:title="Device Identifier">
-        <EditTextPreference
-            android:selectable="false"
-            android:title="Not Registered"
-            android:summary="This is the recipient to use on your Vera"
+        android:title="@string/device_identifier_cat">
+        <Preference
+            android:title="@string/not_registered"
+            android:summary="@string/registrationId_summary"
             android:defaultValue=""
             android:key="RegistrationID"
             />
     </PreferenceCategory>
     <PreferenceCategory
-        android:title="Retention">
+        android:title="@string/history_cat">
         <EditTextPreference
             android:selectable="true"
-            android:title="Max Message Count"
-            android:summary="How many of each unique message to keep. Select 0 for unlimited"
+            android:title="@string/max_message_count"
+            android:summary="@string/max_message_count_summary"
             android:defaultValue="5"
             android:numeric="integer"
             android:key="MaxRetention"
             />
     </PreferenceCategory>
     <PreferenceCategory
-        android:title="Alert Ring Tone Preferences">
+        android:title="@string/alert_notification_cat">
+		<CheckBoxPreference
+    		android:title="@string/vibrate_title"
+    		android:summary="@string/vibrate_summary"
+    		android:defaultValue="true"
+		    android:key="vibrationPref"
+    		/>
         <RingtonePreference
             android:ringtoneType="notification|alarm"
             android:name="Alert1"
-            android:summary="Select an alert sound for AlertTone1"
-            android:title="Alert 1 (default)"
+            android:title="@string/alert1_title"
             android:key="ringtonePref1" 
             />
         <RingtonePreference
             android:ringtoneType="notification|alarm"
             android:name="Alert2"
-            android:summary="Select an alert sound for AlertTone2"
-            android:title="Alert 2"
+            android:summary="@string/alert2_summary"
+            android:title="@string/alert2_title"
             android:key="ringtonePref2" 
             />
         <RingtonePreference
             android:ringtoneType="notification|alarm"
             android:name="Alert3"
-            android:summary="Select an alert sound for AlertTone3"                
-            android:title="Alert 3"
+            android:summary="@string/alert3_summary"                
+            android:title="@string/alert3_title"
             android:key="ringtonePref3" 
             />
         <RingtonePreference
             android:ringtoneType="notification|alarm"
             android:name="Alert4"
-            android:summary="Select an alert sound for AlertTone4"
-            android:title="Alert 4"
+            android:summary="@string/alert4_summary"
+            android:title="@string/alert4_title"
             android:key="ringtonePref4" 
             />
         <RingtonePreference
             android:ringtoneType="all"
             android:name="Alert5"
-            android:summary="Select an alert sound or ringtone for AlertTone5"
-            android:title="Alert 5"
+            android:summary="@string/alert5_summary"
+            android:title="@string/alert5_title"
             android:key="ringtonePref5" 
             />    
     </PreferenceCategory>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+
+    <!-- Strings used in preferences -->
+
+    <string name="set_preferences">Voorkeuren</string>
+    <string name="device_identifier_cat">"Apparaat Identificatie"</string>
+    <string name="not_registered">Niet geregisteerd</string>
+    <string name="registrationId_summary">Deze Apparaat Identificatie moet je instellen in VeraAlert op je Vera (Device ID).</string>
+    <string name="history_cat">"History"</string>
+    <string name="max_message_count">"Max aantal berichten"</string>
+    <string name="max_message_count_summary">"Hoeveel van elk uniek bericht te bewaren. Kies 0 voor ongelimiteerd."</string>
+	<string name="alert_notification_cat">"Alarm Meldingsvoorkeuren"</string>    
+	<string name="vibrate_title">"Trillen bij Alarm"</string>    
+	<string name="vibrate_summary">"Aanvinken voor trillen bij binnenkomend Alarm"</string>    
+	<string name="alert1_title">"Alarm 1 (Standaard)"</string>    
+	<string name="alert1_summary">"Kies een meldingstoon voor Alarm type 1"</string>    
+	<string name="alert2_title">"Alarm 2"</string>    
+	<string name="alert2_summary">"Kies een meldingstoon voor Alarm type 2"</string>    
+	<string name="alert3_title">"Alarm 3"</string>    
+	<string name="alert3_summary">"Kies een meldingstoon voor Alarm type 3"</string>    
+	<string name="alert4_title">"Alarm 4"</string>    
+	<string name="alert4_summary">"Kies een meldingstoon voor Alarm type 4"</string>    
+	<string name="alert5_title">"Alarm 5"</string>    
+	<string name="alert5_summary">"Kies een meldingstoon of beltoon voor Alarm type 5"</string>    
+    <string name="generated_id">"Apparaat Identificatie gegenereerd: "</string>
+
+    <!-- Strings used in notifications -->
+    
+    <string name="cancel">Annuleren</string>
+    <string name="deletetuple">Verwijder</string>
+    <string name="resetall">Alles deselecteren</string>
+    <string name="selectall">Alles selecteren</string>
+
+    <!-- Strings used in notifications option menu -->
+	<string name="preferences">"Voorkeuren"</string>
+	<string name="delete_notifications">"Verwijder"</string>
+	<string name="register">"Aanmelden"</string>
+	<string name="unregister">"Afmelden"</string>
+       
+    <!-- Strings used in notifications context menu-->
+    <string name="properties">"Eigenschappen"</string>
+    <string name="order_by_message">"Sorteer op bericht"</string>
+    <string name="order_by_date">"Sorteer op datum"</string>
+    <string name="order_by_alert_type">"Sorteer op alert type"</string>
+    <string name="select_by_message">"Kies alles met deze text"</string>
+    <string name="select_by_date">"Kies alles ouder dan dit alarm"</string>
+    <string name="select_by_alert_type">"Kies alles met dit alarm type"</string>
+    <string name="alert_properties">"Alarm eigenschappen"</string>
+
+    <!-- Strings used in C2DMController -->
+    
+    <string name="c2dm_registering">"Bezig met aanmelden voor Vera Alarm meldingen"</string>
+    <string name="c2dm_unregistering">"Bezig met afmelden voor Vera Alarm meldingen"</string>
+    <string name="c2dm_registration_ok">"Aanmelding gelukt"</string>
+    <string name="c2dm_unregistration_ok">"Afmelding gelukt"</string>
+	<string name="c2dm_messaging_server_no_response">"Geen antwoord van de berichtenserver ontvangen. Controleer je internettoegang."</string>
+    <string name="c2dm_registration_nok">"Aanmelding mislukt: "</string>
+    <string name="c2dm_unregistration_nok">"Afmelding mislukt: "</string>
+	
+	<!-- Strings used in C2DMIntentHandler -->
+	
+    <string name="c2dm_error_mssgng_unexpected_response">"Onverwacht antwoord van de berichtenserver ontvangen."</string>
+    <string name="c2dm_error_mssgng_account_missing_msg">"Voeg een Google account toe op dit apparaat."</string>
+	<string name="c2dm_error_mssgng_general_msg">"Aanmelding bij de berichtenserver mislukt: "</string>
+    <string name="c2dm_error_appl_general_msg">"Aanmelding bij de applicatieserver mislukt"</string>
+	<string name="c2dm_error_appl_failure_response_msg">": server antwoord met foutmelding."</string>
+</resources>

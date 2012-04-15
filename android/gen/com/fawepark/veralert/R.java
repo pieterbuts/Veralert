@@ -8,10 +8,6 @@
 package com.fawepark.veralert;
 
 public final class R {
-    public static final class array {
-        public static final int alert_server=0x7f070000;
-        public static final int c2dm_name=0x7f070001;
-    }
     public static final class attr {
     }
     public static final class color {
@@ -22,27 +18,93 @@ public final class R {
         public static final int icon=0x7f020000;
     }
     public static final class id {
-        public static final int deleteoptions=0x7f090000;
-        public static final int row_alerttype=0x7f090001;
-        public static final int row_check=0x7f090004;
-        public static final int row_message=0x7f090002;
-        public static final int row_timestamp=0x7f090003;
+        public static final int deleteoptions=0x7f080000;
+        public static final int row_alerttype=0x7f080003;
+        public static final int row_check=0x7f080006;
+        public static final int row_key=0x7f080001;
+        public static final int row_message=0x7f080004;
+        public static final int row_timestamp=0x7f080005;
+        public static final int row_value=0x7f080002;
     }
     public static final class layout {
         public static final int notifications=0x7f030000;
-        public static final int rowlayout=0x7f030001;
+        public static final int properties=0x7f030001;
+        public static final int propertyrow=0x7f030002;
+        public static final int rowlayout=0x7f030003;
     }
     public static final class string {
+        public static final int alert1_summary=0x7f06000d;
+        public static final int alert1_title=0x7f06000c;
+        public static final int alert2_summary=0x7f06000f;
+        public static final int alert2_title=0x7f06000e;
+        public static final int alert3_summary=0x7f060011;
+        public static final int alert3_title=0x7f060010;
+        public static final int alert4_summary=0x7f060013;
+        public static final int alert4_title=0x7f060012;
+        public static final int alert5_summary=0x7f060015;
+        public static final int alert5_title=0x7f060014;
+        public static final int alert_notification_cat=0x7f060009;
+        public static final int alert_properties=0x7f060026;
         public static final int app_name=0x7f060000;
         public static final int app_notifications=0x7f060001;
-        public static final int cancel=0x7f060002;
-        public static final int deletetuple=0x7f060003;
-        public static final int resetall=0x7f060004;
-        public static final int selectall=0x7f060005;
-        public static final int set_preferences=0x7f060006;
+        public static final int c2dm_error_appl_failure_response_msg=0x7f060032;
+        public static final int c2dm_error_appl_general_msg=0x7f060031;
+        public static final int c2dm_error_mssgng_account_missing_msg=0x7f06002f;
+        public static final int c2dm_error_mssgng_general_msg=0x7f060030;
+        /**  Strings used in C2DMIntentHandler 
+ Strings used in C2DMIntentHandler 
+         */
+        public static final int c2dm_error_mssgng_unexpected_response=0x7f06002e;
+        public static final int c2dm_messaging_server_no_response=0x7f06002b;
+        /**  Strings used in C2DMController 
+ Strings used in C2DMController 
+         */
+        public static final int c2dm_registering=0x7f060027;
+        public static final int c2dm_registration_nok=0x7f06002c;
+        public static final int c2dm_registration_ok=0x7f060029;
+        public static final int c2dm_unregistering=0x7f060028;
+        public static final int c2dm_unregistration_nok=0x7f06002d;
+        public static final int c2dm_unregistration_ok=0x7f06002a;
+        /**  Strings used in notifications 
+ Strings used in notifications 
+         */
+        public static final int cancel=0x7f060017;
+        public static final int delete_notifications=0x7f06001c;
+        public static final int deletetuple=0x7f060018;
+        public static final int device_identifier_cat=0x7f060003;
+        public static final int generated_id=0x7f060016;
+        public static final int history_cat=0x7f060006;
+        public static final int max_message_count=0x7f060007;
+        public static final int max_message_count_summary=0x7f060008;
+        public static final int not_registered=0x7f060004;
+        public static final int order_by_alert_type=0x7f060022;
+        public static final int order_by_date=0x7f060021;
+        public static final int order_by_message=0x7f060020;
+        /**  Strings used in notifications option menu 
+ Strings used in notifications option menu 
+         */
+        public static final int preferences=0x7f06001b;
+        /**  Strings used in notifications context menu
+ Strings used in notifications context menu
+         */
+        public static final int properties=0x7f06001f;
+        public static final int register=0x7f06001d;
+        public static final int registrationId_summary=0x7f060005;
+        public static final int resetall=0x7f060019;
+        public static final int select_by_alert_type=0x7f060025;
+        public static final int select_by_date=0x7f060024;
+        public static final int select_by_message=0x7f060023;
+        public static final int selectall=0x7f06001a;
+        /**  Strings used in preferences 
+ Strings used in preferences 
+         */
+        public static final int set_preferences=0x7f060002;
+        public static final int unregister=0x7f06001e;
+        public static final int vibrate_summary=0x7f06000b;
+        public static final int vibrate_title=0x7f06000a;
     }
     public static final class style {
-        public static final int MyTheme=0x7f080000;
+        public static final int MyTheme=0x7f070000;
     }
     public static final class xml {
         public static final int preferences=0x7f040000;

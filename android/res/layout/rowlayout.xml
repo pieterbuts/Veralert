@@ -7,18 +7,16 @@
         android:id="@+id/row_alerttype"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="25px"
-        />
+        android:textSize="20px"/>
 
     <TextView
         android:id="@+id/row_message"
-        android:layout_width="fill_parent"
-        android:layout_weight="1"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:paddingLeft="6px"
-        android:paddingRight="6px"       
-        android:textSize="20px"
-        />
+        android:paddingRight="6px"
+        android:textSize="20px" />
 
     <TextView
         android:id="@+id/row_timestamp"
@@ -32,6 +30,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingLeft="6px"
+        android:paddingTop="0px"
+        android:layout_marginTop="0px"
         android:textSize="20px"
         android:focusable="false"
         />

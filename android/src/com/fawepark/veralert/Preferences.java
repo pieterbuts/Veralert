@@ -9,7 +9,6 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
@@ -22,18 +21,22 @@ public class Preferences extends PreferenceActivity {
 	private Preference mPreferenceAlert3;  
 	private Preference mPreferenceAlert4;  
 	private Preference mPreferenceAlert5;  
-
+	
+	private static final String RINGTONE_PREF = "ringtonePref";
+	private static final String MAX_RETENTION_PREF = "MaxRetention";
+	private static final String VIBRATION_PREF = "vibrationPref";
+	private static final String DEVICE_ID = "RegistrationID";
 	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
 
-        mPreferenceAlert1 = this.findPreference("ringtonePref1");
-        mPreferenceAlert2 = this.findPreference("ringtonePref2");
-        mPreferenceAlert3 = this.findPreference("ringtonePref3");
-        mPreferenceAlert4 = this.findPreference("ringtonePref4");
-        mPreferenceAlert5 = this.findPreference("ringtonePref5");
+        mPreferenceAlert1 = this.findPreference(RINGTONE_PREF + "1");
+        mPreferenceAlert2 = this.findPreference(RINGTONE_PREF + "2");
+        mPreferenceAlert3 = this.findPreference(RINGTONE_PREF + "3");
+        mPreferenceAlert4 = this.findPreference(RINGTONE_PREF + "4");
+        mPreferenceAlert5 = this.findPreference(RINGTONE_PREF + "5");
         
         // Get the custom preference
 
@@ -41,11 +44,10 @@ public class Preferences extends PreferenceActivity {
         
         if (ID.equals("")) {
             ID = scrambleIDS();
-            Toast t = Toast.makeText(this, "ID used is : " + ID, Toast.LENGTH_SHORT);
-            t.show();  
+            Toast.makeText(this, getString(R.string.generated_id) + ID, Toast.LENGTH_SHORT).show();
         }
         
-        EditTextPreference RegID = (EditTextPreference)this.findPreference("RegistrationID");
+        Preference RegID = this.findPreference(DEVICE_ID);
         RegID.setTitle(ID);
     }
 
@@ -53,11 +55,11 @@ public class Preferences extends PreferenceActivity {
     protected void onResume() {
         super.onResume();
 
-        mPreferenceAlert1.setSummary(getSummary("ringtonePref1", "Select an alert sound for AlertTone1"));
-        mPreferenceAlert2.setSummary(getSummary("ringtonePref2", "Select an alert sound for AlertTone2"));
-        mPreferenceAlert3.setSummary(getSummary("ringtonePref3", "Select an alert sound for AlertTone3"));
-        mPreferenceAlert4.setSummary(getSummary("ringtonePref4", "Select an alert sound for AlertTone4"));
-        mPreferenceAlert5.setSummary(getSummary("ringtonePref5", "Select an alert sound or ringtone for AlertTone5"));
+        mPreferenceAlert1.setSummary(getSummary(RINGTONE_PREF + "1", getString(R.string.alert1_summary)));
+        mPreferenceAlert2.setSummary(getSummary(RINGTONE_PREF + "2", getString(R.string.alert2_summary)));
+        mPreferenceAlert3.setSummary(getSummary(RINGTONE_PREF + "3", getString(R.string.alert3_summary)));
+        mPreferenceAlert4.setSummary(getSummary(RINGTONE_PREF + "4", getString(R.string.alert4_summary)));
+        mPreferenceAlert5.setSummary(getSummary(RINGTONE_PREF + "5", getString(R.string.alert5_summary)));
     }
 
     private String getSummary(String preference, String defaultSummary) {
@@ -68,6 +70,7 @@ public class Preferences extends PreferenceActivity {
         
         if (prefText.equals("")) {
         	// No ringtone selected or silent: display default text
+        	
         	summary = defaultSummary;
         }
         else {
@@ -106,9 +109,14 @@ public class Preferences extends PreferenceActivity {
     }
     
     public static String getAlertTone(Context ctx, String val) {
-        String pref_string = "ringtonePref" + val;
+        String pref_string = RINGTONE_PREF + val;
         SharedPreferences sp = getDefault(ctx);
-        String res_string = sp.getString(pref_string, "");
+        String res_string = sp.getString(pref_string, "-");
+        
+        if (res_string.equals("-")) {
+        	getAlertTone(ctx, "1");
+        }
+        
         Log.i(Notifications.TAG,"using ringtone: " + res_string + " for AlertTone" + val); 
         
         return res_string;
@@ -116,11 +124,29 @@ public class Preferences extends PreferenceActivity {
 
     public static int getMaxRetention(Context ctx) {
         SharedPreferences sp = getDefault(ctx);
-        String tmp = sp.getString("MaxRetention", "0");
+        int maxRetention = 5;
         
-        return Integer.parseInt(tmp);
+        try {
+        	maxRetention = sp.getInt(MAX_RETENTION_PREF, maxRetention);
+        } catch (ClassCastException e) {
+        	// Just return the default value
+        }
+        
+        return maxRetention;
     }
 
+    public static boolean getVibration(Context ctx) {
+        SharedPreferences sp = getDefault(ctx);
+        boolean vibrate = false;
+        
+        try {
+        	vibrate = sp.getBoolean(VIBRATION_PREF, false);
+        } catch (ClassCastException e) {
+        	// Just return the default value
+        }
+        
+        return vibrate;
+    }
 
     private static SharedPreferences getDefault(Context ctx) {
         return PreferenceManager.getDefaultSharedPreferences(ctx);

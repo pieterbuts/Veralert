@@ -18,7 +18,7 @@
             return string.gsub(in_string, "{([12345])}" , "AlertTone%1")
         end
 
-        function getVariable(service, variable, id, default)
+        function getVariable(service, variable, default, id)
             local res = luup.variable_get(service, variable, id)
 
             if (res == nil) or (res == '') then
@@ -68,6 +68,8 @@
             end
 
             params = params..string.char(38).."time="..os.time()
+            params = params..string.char(38).."zone="..luup.timezone
+            params = params..string.char(38).."vera="..luup.device
 
             for t in string.gmatch(rcp, "([%a%d]+)") do
                 payload = "recipient="..escape(t)..string.char(38)..params
@@ -88,12 +90,17 @@
             msg = "starting up with id " .. luup.devices[lul_device].id
             log(msg)
 --            send_status("startup" .. msg)
+            local file = io.open("/etc/cmh/PK_AccessPoint", "r")
+            local serialNr = file:read("*all")
+            file:close()
 
-            getVariable(vera_alert_service, "DefaultVeraAlertDeviceIdentifiers", lul_device, "" )
-            getVariable(vera_alert_service, "DefaultVeraAlertDeviceIdentifier1", lul_device, "")
-            getVariable(vera_alert_service, "DefaultVeraAlertDeviceIdentifier2", lul_device, "")
-            getVariable(vera_alert_service, "LastAlertDate", lul_device, os.date('%Y-%m-%d'))
-            getVariable(vera_alert_service, "LastAlertTime", lul_device, os.date('%H:%M:%S'))
+            luup.variable_set(vera_alert_service, "SerialNr", serialNr, lul_device)
+
+            getVariable(vera_alert_service, "DefaultVeraAlertDeviceIdentifiers", "", lul_device)
+            getVariable(vera_alert_service, "DefaultVeraAlertDeviceIdentifier1", "", lul_device)
+            getVariable(vera_alert_service, "DefaultVeraAlertDeviceIdentifier2", "", lul_device)
+            getVariable(vera_alert_service, "LastAlertDate", os.date('%Y-%m-%d'), lul_device)
+            getVariable(vera_alert_service, "LastAlertTime", os.date('%H:%M:%S'), lul_device)
 
             log("Startup OK")
             return true

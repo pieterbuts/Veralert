@@ -8,10 +8,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
-import android.preference.PreferenceManager;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
 
 
@@ -24,27 +24,32 @@ public class C2DMController extends BroadcastReceiver {
 	private boolean registrationInProgress = false;
 	private boolean unregistrationInProgress = false;
 	private ProgressDialog pd;
+	private Messenger replyTo;
+	
     private static final String C2DM_NAME = "c2dm@barcodebeasties.com";
     private static final String INTENT_REGISTER = "com.google.android.c2dm.intent.REGISTER";
     private static final String INTENT_UNREGISTER = "com.google.android.c2dm.intent.UNREGISTER";
     private static final String EXTRA_APP = "app";
     private static final String EXTRA_SENDER = "sender";
-	private static final String REGISTRATION_ID = "RegID";
 
 	public static final String ACTION_RESULT = "C2DMIntentHandlerResult";
 	public static final String EXTRA_ACTION = "Action";
 	public static final String EXTRA_SUCCESS = "Success";
 	public static final String EXTRA_MSG = "Message";
 	public static final String EXTRA_REGID = "RegistrationId";
+	public static final int MSG_ACTION_COMPLETED = 1;
+	public static final int MSG_ALERT_RECEIVED = 2;
 	
 	C2DMController() {
 		super();
 	}
 	
-	C2DMController(Context context) {
+	C2DMController(Context context, Messenger replyTo) {
 		super();
+		
 		this.context = context;
-		registrationHandler = this.new RegistrationHandler();
+		this.replyTo = replyTo;
+		this.registrationHandler = this.new RegistrationHandler();
 	}
 	
 	public void register() {
@@ -94,8 +99,9 @@ public class C2DMController extends BroadcastReceiver {
 	
 	public boolean isRegistered()
 	{
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        String regId = sp.getString(REGISTRATION_ID, "");
+    	Settings settings = new Settings(context);
+    	
+        String regId = settings.getRegistrationIdentifier();
     	boolean result = false;
     	
         if (!regId.equals("")) {
@@ -121,30 +127,46 @@ public class C2DMController extends BroadcastReceiver {
 		boolean success = intent.getBooleanExtra(EXTRA_SUCCESS, false);
 		String msg = intent.getStringExtra(EXTRA_MSG);
 		String registrationId = intent.getStringExtra(EXTRA_REGID);		
-	    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-	    SharedPreferences.Editor editor = sp.edit();
 
-	    if ((action != null) & action.equals(C2DMIntentHandler.ACTION_REGISTRATION)) {
-		    registrationResponseReceived = true;
-			
-			if (success)
-			{
-				if (unregistrationInProgress) {
-					editor.putString(REGISTRATION_ID, "").commit();
-					msg = context.getString(R.string.c2dm_registration_ok);
-				} else if (registrationInProgress) {
-					editor.putString(REGISTRATION_ID, registrationId).commit();
-					msg = context.getString(R.string.c2dm_unregistration_ok);
-				} else {
-					// Unexpected
-				}
+	    if (action != null) {
+	    	if (action.equals(C2DMIntentHandler.ACTION_REGISTRATION)) {
+			    registrationResponseReceived = true;
 				
-				completeRegistration(true, msg);
-			} else {
-				completeRegistration(false, msg);
-			}
+				if (success)
+				{
+					if (unregistrationInProgress) {
+				    	Settings settings = new Settings(context);
+				    	settings.setRegistrationIdentifier("");
+	
+				    	msg = context.getString(R.string.c2dm_unregistration_ok);
+					} else if (registrationInProgress) {
+				    	Settings settings = new Settings(context);
+				    	settings.setRegistrationIdentifier(registrationId);
+	
+						msg = context.getString(R.string.c2dm_registration_ok);
+					} else {
+						// Unexpected
+						
+						success = false;
+						msg = context.getString(R.string.c2dm_registration_unexpected_state);
+					}
+				}	
+				
+				completeRegistration(success, msg);
+		    } else if (action.equals(C2DMIntentHandler.ACTION_RECEIVE)) {
+		    	try {
+		    		replyTo.send(Message.obtain(null, MSG_ALERT_RECEIVED, 0, 0));
+		    	} catch (RemoteException e) {
+			        Log.e(TAG,"RemoteException.");
+		    	}
+		    	
+		    }else {
+		    	// Unexpected intent, just ignore
+		        Log.i(TAG,"Unexpected intent received.");
+		    }
 	    } else {
 	    	// Unexpected intent, just ignore
+	        Log.i(TAG,"Unexpected intent received.");
 	    }
 	}
 	
@@ -169,6 +191,12 @@ public class C2DMController extends BroadcastReceiver {
 
     	AlertDialog alertDlg = builder.create();
     	alertDlg.show();
+    	
+    	try {
+    		replyTo.send(Message.obtain(null, MSG_ACTION_COMPLETED, 0, 0));
+    	} catch (RemoteException e) {
+	        Log.e(TAG,"RemoteException.");
+    	}
 	}
 	
 	class RegistrationHandler extends Handler {  

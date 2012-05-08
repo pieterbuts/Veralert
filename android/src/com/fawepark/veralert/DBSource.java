@@ -174,7 +174,8 @@ public class DBSource {
     }
     
     private void LimitData(List<DBTuple> Results) {
-        int Max = Preferences.getMaxRetention(context);
+    	Settings settings = new Settings(context);
+    	int Max = settings.getMaxRetention();
         
         if (Max == 0) return;
         

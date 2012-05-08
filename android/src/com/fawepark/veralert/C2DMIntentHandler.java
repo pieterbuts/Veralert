@@ -26,8 +26,11 @@ public class C2DMIntentHandler extends IntentService {
 	private static final String TAG = "Veralert C2DM";
     private static final String TYPE_ALERT = "alert";
     private static final String ALERT_SERVER = "http://vera-alert.appspot.com";
-    private static final String ALERT_SERVER_ACTION_REGISTER = "player/c2dm/register";
-    private static final String ALERT_SERVER_ACTION_UNREGISTER = "player/c2dm/unregister";
+    private static final String ALERT_SERVER_ACTION_REGISTER = "/player/c2dm/register";
+    private static final String ALERT_SERVER_ACTION_UNREGISTER = "/player/c2dm/unregister";
+    private static final String RESPONSE_EXTRA_REGISTRATION_ID = "registration_id";
+    private static final String RESPONSE_EXTRA_UNREGISTERED = "unregistered";
+    private static final String RESPONSE_EXTRA_ERROR = "error";
     private static final String WAKELOCK_KEY = "VeraAlert";
     private static final String CLASS = ".C2DMIntentHandler";
     private static final String DICT_ID_A = "id_a";
@@ -89,13 +92,14 @@ public class C2DMIntentHandler extends IntentService {
 	private void HandleRegistration(Intent intent)
 	{
 		Log.w(TAG, "Received intent");
-		String registrationId = intent.getStringExtra("registration_id");
-		String unregistered = intent.getStringExtra("unregistered");
-		String error = intent.getStringExtra("error");
+		String registrationId = intent.getStringExtra(RESPONSE_EXTRA_REGISTRATION_ID);
+		String unregistered = intent.getStringExtra(RESPONSE_EXTRA_UNREGISTERED);
+		String error = intent.getStringExtra(RESPONSE_EXTRA_ERROR);
 		Context context = getApplicationContext();
 		boolean result = false;
 		String msg = "";
 		String serverResult = "";
+    	Settings settings = new Settings(this);
 		
 		Intent broadcastIntent = new Intent();
 		broadcastIntent.setAction(C2DMController.ACTION_RESULT);
@@ -110,7 +114,7 @@ public class C2DMIntentHandler extends IntentService {
 				if (unregistered.equals(context.getPackageName())) {
 					// Unregistration successful
 					
-			        dict.put(DICT_ID_A, Preferences.getIDString(context));
+			        dict.put(DICT_ID_A, settings.getDeviceIdentifier());
 			        
 					broadcastIntent.putExtra(C2DMController.EXTRA_REGID, "");
 			    
@@ -128,14 +132,19 @@ public class C2DMIntentHandler extends IntentService {
 			else {
 				// Registration successful
 				
-		        dict.put(DICT_ID_A, Preferences.getIDString(context));
+		        dict.put(DICT_ID_A, settings.getDeviceIdentifier());
 		        dict.put(DICT_GOOGLE_CLOUD_ID, registrationId);
 
 				broadcastIntent.putExtra(C2DMController.EXTRA_REGID, registrationId);
 
-				FireAndForgetUrl(ALERT_SERVER + ALERT_SERVER_ACTION_REGISTER, dict);
+		        serverResult = FireAndForgetUrl(ALERT_SERVER + ALERT_SERVER_ACTION_REGISTER, dict);
+		        
+		        if (serverResult.equals("")) {
+		        	result = true;
+		        } else {
+		        	msg = serverResult;
+		        }
 			}
-
 		}
 		else {	
 			if (error.equals(ACCOUNT_MISSING)) {
@@ -163,8 +172,12 @@ public class C2DMIntentHandler extends IntentService {
         long when = System.currentTimeMillis();
 		Context context = getApplicationContext();
 
-        Log.i(TAG,"TimeStamp : "+ when);
-        Log.d(TAG,"Message type is " + type);
+		Log.i(TAG,"TimeStamp : "+ when);
+        Log.i(TAG,"Message type is " + type);
+
+        Intent broadcastIntent = new Intent();
+		broadcastIntent.setAction(C2DMController.ACTION_RESULT);
+		broadcastIntent.putExtra(C2DMController.EXTRA_ACTION, intent.getAction());
         
         Bundle extras = intent.getExtras();
         
@@ -240,6 +253,8 @@ public class C2DMIntentHandler extends IntentService {
             AlertIndicator(context, msg, tone, when);
         }   
 		
+		broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+		sendBroadcast(broadcastIntent);		
 	}
 	
     private String FireAndForgetUrl(String url_string, Map<String, String> dict) {
@@ -273,7 +288,7 @@ public class C2DMIntentHandler extends IntentService {
                         
             if (response_code == HttpURLConnection.HTTP_OK) {
                	Log.v(TAG, "Logging scan " + post_string + " succeeded.");
-               	msg = ".";
+               	msg = "";
             } 
             else {
                	Log.v(TAG, "Logging scan " + post_string + " failed. Response: " + response_code); 
@@ -284,10 +299,12 @@ public class C2DMIntentHandler extends IntentService {
         
         catch (MalformedURLException ex) {                    
             Log.e(TAG, "FireAndForget " + ex.toString());
+           	msg += ".";
         } 
         
         catch (IOException ex) {
             Log.e(TAG, "FireAndForget " + ex.toString());
+           	msg += ".";
         } 
         
         finally {
@@ -303,6 +320,7 @@ public class C2DMIntentHandler extends IntentService {
         Log.d(TAG,"message text is " + msg);
          
         String human_msg = msg;
+    	Settings settings = new Settings(this);
 
         // Get the static global NotificationManager object.
         String ns = Context.NOTIFICATION_SERVICE;
@@ -316,13 +334,13 @@ public class C2DMIntentHandler extends IntentService {
 
         Notification n = new Notification(icon, tickerText, when);
 
-        String rt = Preferences.getAlertTone(context, tone);
+        String rt = settings.getAlertTone(tone);
         
         if (rt != "") {
             n.sound = Uri.parse(rt);
         }
         
-        if (Preferences.getVibration(context)) {
+        if (settings.getVibration()) {
         	n.defaults |= Notification.DEFAULT_VIBRATE;
         }
         

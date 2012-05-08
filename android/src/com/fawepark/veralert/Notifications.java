@@ -9,6 +9,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.os.Messenger;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -19,14 +22,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
 
 public class Notifications extends ListActivity {
-    public static final String TAG = "Veralert.Notifications";
+    private final String TAG = "Veralert.Notifications";
     private View EditOptions;
     private DBViewAdapter dbAdapter;
     private C2DMController c2dmController;
+    private String orgTitle = "";
+    private final Messenger messenger = new Messenger(new IncomingHandler());
 
     private static final int PROPERTIES = 300;
     private static final int ORDER_BY_MESSAGE = 100;
@@ -35,24 +39,53 @@ public class Notifications extends ListActivity {
     private static final int SELECT_BY_MESSAGE = 200;
     private static final int SELECT_BY_DATE = 201;
     private static final int SELECT_BY_ALERT_TYPE = 202;
-    
+
+    class IncomingHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+            case C2DMController.MSG_ACTION_COMPLETED:
+                if (c2dmController.isRegistered()) {
+                	setTitle(orgTitle);
+                } else {
+                	setTitle(orgTitle + getString(R.string.not_registered));
+                }
+                break;
+            case C2DMController.MSG_ALERT_RECEIVED:
+                dbAdapter.Refresh();
+                dbAdapter.notifyDataSetChanged();
+            	break;
+            default:
+                super.handleMessage(msg);
+            }
+        }
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.notifications);
-        SharedPreferences sp = getDefault(this);
-        c2dmController = new C2DMController(this);
+        Log.i(TAG,"Notifications.onCreate"); 
+
+    	Settings settings = new Settings(this);
+    	String deviceId = settings.getDeviceIdentifier();
+
+    	orgTitle = (String)getTitle();
+    	
+        c2dmController = new C2DMController(this, messenger);
+
         c2dmController.start();
+        setContentView(R.layout.notifications);
         
-        if (! sp.contains("ID") ) {
+        if (deviceId.equals("")) {
             Intent intent = new Intent(this, Preferences.class);
             startActivity(intent);
-
-            Toast.makeText(this, "Please register from the menu", Toast.LENGTH_LONG).show();
         }
 
-        Log.i(Notifications.TAG,"Notifications.onCreate"); 
+        if (!c2dmController.isRegistered()) {
+        	setTitle(orgTitle + getString(R.string.not_registered));
+        }
+        
         CancelNotification();
 
         // Use the SimpleCursorAdapter to show the
@@ -67,9 +100,14 @@ public class Notifications extends ListActivity {
     @Override    
     public void onResume() {
         super.onResume();
-        Log.i(Notifications.TAG,"Notifications.onResume"); 
+
+        Settings settings = new Settings(this);
+
+        Log.i(TAG,"Notifications.onResume"); 
+        
         CancelNotification();
         dbAdapter.Refresh();
+    	dbAdapter.SetSortOrder(settings.getOrder());
         dbAdapter.notifyDataSetChanged();
     }   
 
@@ -85,7 +123,7 @@ public class Notifications extends ListActivity {
   		menu.add(0, 1, 0, getString(R.string.register));
     	menu.add(0, 2, 0, getString(R.string.preferences));
     	menu.add(0, 3, 0, getString(R.string.delete_notifications));
-      
+
     	return true;
     }
 
@@ -121,27 +159,17 @@ public class Notifications extends ListActivity {
         if (i.equals(getString(R.string.preferences))) {
             Intent intent = new Intent(this, Preferences.class);
             startActivity(intent);
-        }
-        
-        if (i.equals(getString(R.string.delete_notifications))) {
+        } else if (i.equals(getString(R.string.delete_notifications))) {
             dbAdapter.SetEdit(true);
             dbAdapter.notifyDataSetChanged();
             EditOptions.setVisibility(View.VISIBLE);
-        }
-        
-        if (i.equals(getString(R.string.register))) {
+        } else if (i.equals(getString(R.string.register))) {
         	c2dmController.register();
-        }
-        
-        if (i.equals(getString(R.string.unregister))) {
+        } else if (i.equals(getString(R.string.unregister))) {
         	c2dmController.unregister();
         }
-
+        
         return true;
-    }
-    
-    protected void onActivityResult(int RequestCode, int resultCode, Intent data) {
-    	
     }
     
     public void DeleteTuples(View view) {
@@ -200,26 +228,27 @@ public class Notifications extends ListActivity {
     
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        boolean Result = false;
+        boolean result = false;
         
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
         DBTuple t = dbAdapter.Get(info.position);
         List<DBTuple> vals = dbAdapter.GetValues();
-        
+    	Settings settings = new Settings(this);
+       
         switch (item.getItemId()) {
-          case SELECT_BY_MESSAGE:
-            for (int i = 0; i < vals.size(); i++) {
-                DBTuple t2 = vals.get(i);
+        case SELECT_BY_MESSAGE:
+        	for (int i = 0; i < vals.size(); i++) {
+        		DBTuple t2 = vals.get(i);
                 
                 if (t.message.equals(t2.message)) {
                     t2.Selected = true;
                 }
             }
             
-            Result = true;
+        	result = true;
             break;
             
-          case SELECT_BY_DATE:
+        case SELECT_BY_DATE:
             for (int i = 0; i < vals.size(); i++) {
                 DBTuple t2 = vals.get(i);
                 
@@ -228,10 +257,10 @@ public class Notifications extends ListActivity {
                 }
             }
             
-            Result = true;
+            result = true;
             break;
-            
-          case SELECT_BY_ALERT_TYPE:
+           
+        case SELECT_BY_ALERT_TYPE:
               for (int i = 0; i < vals.size(); i++) {
                   DBTuple t2 = vals.get(i);
                   
@@ -240,35 +269,38 @@ public class Notifications extends ListActivity {
                   }
               }
               
-              Result = true;
+              result = true;
               break;
               
-          case ORDER_BY_MESSAGE:
-            dbAdapter.SetSortOrder(DBViewAdapter.BY_MESSAGE);
-            Result = true;
+        case ORDER_BY_MESSAGE:
+        	dbAdapter.SetSortOrder(DBViewAdapter.BY_MESSAGE);
+        	settings.setOrder(DBViewAdapter.BY_MESSAGE);
+        	result = true;
             break;
             
-          case ORDER_BY_DATE:
-            dbAdapter.SetSortOrder(DBViewAdapter.BY_DATE);
-            Result = true;
+        case ORDER_BY_DATE:
+        	dbAdapter.SetSortOrder(DBViewAdapter.BY_DATE);
+        	settings.setOrder(DBViewAdapter.BY_DATE);
+        	result = true;
             break;
             
-          case ORDER_BY_ALERT_TYPE:
-              dbAdapter.SetSortOrder(DBViewAdapter.BY_ALERT_TYPE);
-              Result = true;
-              break;
+        case ORDER_BY_ALERT_TYPE:
+        	dbAdapter.SetSortOrder(DBViewAdapter.BY_ALERT_TYPE);
+        	settings.setOrder(DBViewAdapter.BY_ALERT_TYPE);
+        	result = true;
+			break;
 
-          case PROPERTIES:
-        	  ShowAlertProperties(t.id);
-              Result = true;
-              break;
+        case PROPERTIES:
+			ShowAlertProperties(t.id);
+			result = true;
+			break;
         }
         
-        if (Result) {
+        if (result) {
             dbAdapter.notifyDataSetChanged();
         }
         
-        return Result;
+        return result;
     }
     
     private void ShowAlertProperties(int alertId) {

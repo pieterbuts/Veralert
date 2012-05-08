@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-
-
     <!-- Strings used in preferences -->
 
-    <string name="set_preferences">Voorkeuren</string>
+    <string name="set_preferences">"Voorkeuren"</string>
     <string name="device_identifier_cat">"Apparaat Identificatie"</string>
-    <string name="not_registered">Niet geregisteerd</string>
+    <string name="not_registered">" (Niet geregisteerd)"</string>
     <string name="registrationId_summary">Deze Apparaat Identificatie moet je instellen in VeraAlert op je Vera (Device ID).</string>
     <string name="history_cat">"History"</string>
     <string name="max_message_count">"Max aantal berichten"</string>
@@ -25,8 +22,13 @@
 	<string name="alert4_summary">"Kies een meldingstoon voor Alarm type 4"</string>    
 	<string name="alert5_title">"Alarm 5"</string>    
 	<string name="alert5_summary">"Kies een meldingstoon of beltoon voor Alarm type 5"</string>    
-    <string name="generated_id">"Apparaat Identificatie gegenereerd: "</string>
-
+ 	<string name="advanced_cat">"Geavanceerde instellingen"</string>    
+	<string name="manual_device_id">"Apparaat Identificatie instellen"</string>
+    <string name="manual_device_id_summary">"Wanneer je VeraAlerts opnieuw hebt geïnstalleerd, kun je de Apparaat Identificatie opgeven zoals ingesteld in de VeraAlert plugin op je Vera."</string>
+    <string name="enter_device_identifier">"Apparaat Identificatie instellen"</string>
+    <string name="manual_device_id_error">"Apparaat Identificatie moet precies 12 letters en/of cijfers bevatten."</string>
+	<string name="generated_id">"Apparaat Identificatie gegenereerd: "</string>
+	
     <!-- Strings used in notifications -->
     
     <string name="cancel">Annuleren</string>
@@ -59,7 +61,8 @@
 	<string name="c2dm_messaging_server_no_response">"Geen antwoord van de berichtenserver ontvangen. Controleer je internettoegang."</string>
     <string name="c2dm_registration_nok">"Aanmelding mislukt: "</string>
     <string name="c2dm_unregistration_nok">"Afmelding mislukt: "</string>
-	
+    <string name="c2dm_registration_unexpected_state">"Onverwachte toestand"</string>	
+    	
 	<!-- Strings used in C2DMIntentHandler -->
 	
     <string name="c2dm_error_mssgng_unexpected_response">"Onverwacht antwoord van de berichtenserver ontvangen."</string>

@@ -33,75 +33,93 @@ public final class R {
         public static final int rowlayout=0x7f030003;
     }
     public static final class string {
-        public static final int alert1_summary=0x7f06000d;
-        public static final int alert1_title=0x7f06000c;
-        public static final int alert2_summary=0x7f06000f;
-        public static final int alert2_title=0x7f06000e;
-        public static final int alert3_summary=0x7f060011;
-        public static final int alert3_title=0x7f060010;
-        public static final int alert4_summary=0x7f060013;
-        public static final int alert4_title=0x7f060012;
-        public static final int alert5_summary=0x7f060015;
-        public static final int alert5_title=0x7f060014;
-        public static final int alert_notification_cat=0x7f060009;
-        public static final int alert_properties=0x7f060026;
+        public static final int advanced_cat=0x7f060020;
+        public static final int alert1_summary=0x7f060017;
+        public static final int alert1_title=0x7f060016;
+        public static final int alert2_summary=0x7f060019;
+        public static final int alert2_title=0x7f060018;
+        public static final int alert3_summary=0x7f06001b;
+        public static final int alert3_title=0x7f06001a;
+        public static final int alert4_summary=0x7f06001d;
+        public static final int alert4_title=0x7f06001c;
+        public static final int alert5_summary=0x7f06001f;
+        public static final int alert5_title=0x7f06001e;
+        public static final int alert_notification_cat=0x7f060013;
+        public static final int alert_properties=0x7f060035;
         public static final int app_name=0x7f060000;
         public static final int app_notifications=0x7f060001;
-        public static final int c2dm_error_appl_failure_response_msg=0x7f060032;
-        public static final int c2dm_error_appl_general_msg=0x7f060031;
-        public static final int c2dm_error_mssgng_account_missing_msg=0x7f06002f;
-        public static final int c2dm_error_mssgng_general_msg=0x7f060030;
+        public static final int c2dm_error_appl_failure_response_msg=0x7f060042;
+        public static final int c2dm_error_appl_general_msg=0x7f060041;
+        public static final int c2dm_error_mssgng_account_missing_msg=0x7f06003f;
+        public static final int c2dm_error_mssgng_general_msg=0x7f060040;
         /**  Strings used in C2DMIntentHandler 
  Strings used in C2DMIntentHandler 
          */
-        public static final int c2dm_error_mssgng_unexpected_response=0x7f06002e;
-        public static final int c2dm_messaging_server_no_response=0x7f06002b;
+        public static final int c2dm_error_mssgng_unexpected_response=0x7f06003e;
+        public static final int c2dm_messaging_server_no_response=0x7f06003a;
         /**  Strings used in C2DMController 
  Strings used in C2DMController 
          */
-        public static final int c2dm_registering=0x7f060027;
-        public static final int c2dm_registration_nok=0x7f06002c;
-        public static final int c2dm_registration_ok=0x7f060029;
-        public static final int c2dm_unregistering=0x7f060028;
-        public static final int c2dm_unregistration_nok=0x7f06002d;
-        public static final int c2dm_unregistration_ok=0x7f06002a;
+        public static final int c2dm_registering=0x7f060036;
+        public static final int c2dm_registration_nok=0x7f06003b;
+        public static final int c2dm_registration_ok=0x7f060038;
+        public static final int c2dm_registration_unexpected_state=0x7f06003d;
+        public static final int c2dm_unregistering=0x7f060037;
+        public static final int c2dm_unregistration_nok=0x7f06003c;
+        public static final int c2dm_unregistration_ok=0x7f060039;
         /**  Strings used in notifications 
  Strings used in notifications 
          */
-        public static final int cancel=0x7f060017;
-        public static final int delete_notifications=0x7f06001c;
-        public static final int deletetuple=0x7f060018;
-        public static final int device_identifier_cat=0x7f060003;
-        public static final int generated_id=0x7f060016;
-        public static final int history_cat=0x7f060006;
-        public static final int max_message_count=0x7f060007;
-        public static final int max_message_count_summary=0x7f060008;
-        public static final int not_registered=0x7f060004;
-        public static final int order_by_alert_type=0x7f060022;
-        public static final int order_by_date=0x7f060021;
-        public static final int order_by_message=0x7f060020;
+        public static final int cancel=0x7f060026;
+        public static final int delete_notifications=0x7f06002b;
+        public static final int deletetuple=0x7f060027;
+        /**  Strings used in preferences 
+         */
+        public static final int deviceIdPref=0x7f060002;
+        public static final int device_identifier_cat=0x7f06000d;
+        public static final int enter_device_identifier=0x7f060023;
+        public static final int generated_id=0x7f060025;
+        public static final int history_cat=0x7f060010;
+        public static final int manualDeviceIdPref=0x7f06000b;
+        public static final int manual_device_id=0x7f060021;
+        public static final int manual_device_id_error=0x7f060024;
+        public static final int manual_device_id_summary=0x7f060022;
+        public static final int maxRetentionPref=0x7f060003;
+        public static final int max_message_count=0x7f060011;
+        public static final int max_message_count_summary=0x7f060012;
+        public static final int not_registered=0x7f06000e;
+        public static final int order_by_alert_type=0x7f060031;
+        public static final int order_by_date=0x7f060030;
+        public static final int order_by_message=0x7f06002f;
         /**  Strings used in notifications option menu 
  Strings used in notifications option menu 
          */
-        public static final int preferences=0x7f06001b;
+        public static final int preferences=0x7f06002a;
         /**  Strings used in notifications context menu
  Strings used in notifications context menu
          */
-        public static final int properties=0x7f06001f;
-        public static final int register=0x7f06001d;
-        public static final int registrationId_summary=0x7f060005;
-        public static final int resetall=0x7f060019;
-        public static final int select_by_alert_type=0x7f060025;
-        public static final int select_by_date=0x7f060024;
-        public static final int select_by_message=0x7f060023;
-        public static final int selectall=0x7f06001a;
+        public static final int properties=0x7f06002e;
+        public static final int register=0x7f06002c;
+        public static final int registrationId_summary=0x7f06000f;
+        public static final int resetall=0x7f060028;
+        public static final int ringtonePref=0x7f060005;
+        public static final int ringtonePref1=0x7f060006;
+        public static final int ringtonePref2=0x7f060007;
+        public static final int ringtonePref3=0x7f060008;
+        public static final int ringtonePref4=0x7f060009;
+        public static final int ringtonePref5=0x7f06000a;
+        public static final int select_by_alert_type=0x7f060034;
+        public static final int select_by_date=0x7f060033;
+        public static final int select_by_message=0x7f060032;
+        public static final int selectall=0x7f060029;
         /**  Strings used in preferences 
  Strings used in preferences 
          */
-        public static final int set_preferences=0x7f060002;
-        public static final int unregister=0x7f06001e;
-        public static final int vibrate_summary=0x7f06000b;
-        public static final int vibrate_title=0x7f06000a;
+        public static final int set_preferences=0x7f06000c;
+        public static final int unregister=0x7f06002d;
+        public static final int vibrate_summary=0x7f060015;
+        public static final int vibrate_title=0x7f060014;
+        public static final int vibrationPref=0x7f060004;
     }
     public static final class style {
         public static final int MyTheme=0x7f070000;

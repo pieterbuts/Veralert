@@ -102,7 +102,7 @@ public class DBViewAdapter extends ArrayAdapter<DBTuple> {
     public void SetSortOrder(int v) {
         SortOrder = v;
         switch (SortOrder) {
-          case BY_MESSAGE:
+        case BY_MESSAGE:
             Collections.sort(values, new Comparator<DBTuple>() {
               @Override
               public int compare(DBTuple t1, DBTuple t2) {
@@ -116,7 +116,7 @@ public class DBViewAdapter extends ArrayAdapter<DBTuple> {
             });
             break;
             
-          case BY_DATE:
+        case BY_DATE:
             Collections.sort(values, new Comparator<DBTuple>() {
                 @Override
                 public int compare(DBTuple t1, DBTuple t2) {
@@ -125,7 +125,7 @@ public class DBViewAdapter extends ArrayAdapter<DBTuple> {
             });
             break;
             
-          case BY_ALERT_TYPE:
+        case BY_ALERT_TYPE:
               Collections.sort(values, new Comparator<DBTuple>() {
                   @Override
                   public int compare(DBTuple t1, DBTuple t2) {

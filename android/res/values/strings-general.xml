@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">veralert</string>
+    <string name="app_notifications">Vera Alerts</string>
+
+    <!-- Strings used in preferences -->
+    
+    <string name="deviceIdPref">"DeviceId"</string>
+    <string name="maxRetentionPref">"MaxRetention"</string>
+    <string name="vibrationPref">"vibrationPref"</string>
+    <string name="ringtonePref">"ringtonePref"</string>
+    <string name="ringtonePref1">"ringtonePref1"</string>
+    <string name="ringtonePref2">"ringtonePref2"</string>
+    <string name="ringtonePref3">"ringtonePref3"</string>
+    <string name="ringtonePref4">"ringtonePref4"</string>
+    <string name="ringtonePref5">"ringtonePref5"</string>
+    <string name="manualDeviceIdPref">"ManualDeviceId"</string>
+    
+</resources>

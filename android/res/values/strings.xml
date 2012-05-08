@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">veralert</string>
-    <string name="app_notifications">Vera Alerts</string>
-    
     <!-- Strings used in preferences -->
  
     <string name="set_preferences">"Preferences"</string>
     <string name="device_identifier_cat">"Device Identifier"</string>
-    <string name="not_registered">""Not Registered"</string>
+    <string name="not_registered">" (Not registered)"</string>
     <string name="registrationId_summary">"This is the Device ID to specify in VeraAlert on your Vera."</string>
     <string name="history_cat">"History"</string>
     <string name="max_message_count">"Max Message Count"</string>
@@ -25,6 +22,11 @@
 	<string name="alert4_summary">"Select an alert sound for AlertTone4"</string>    
 	<string name="alert5_title">"Alert 5"</string>    
 	<string name="alert5_summary">"Select an alert sound or ringtone for AlertTone5"</string>    
+	<string name="advanced_cat">"Advanced settings"</string>    
+    <string name="manual_device_id">"Manually Set Device Identifier"</string>
+    <string name="manual_device_id_summary">"When you have reinstalled VeraAlerts you can enter the Device Identifier as set in the VeraAlert plugin on your Vera."</string>
+    <string name="enter_device_identifier">"Enter Device Identifier"</string>
+    <string name="manual_device_id_error">"Device Identifier must contain exactly 12 letters and/or digits"</string>
     <string name="generated_id">"Device Identifier generated: "</string>
 
     <!-- Strings used in notifications -->
@@ -59,7 +61,8 @@
 	<string name="c2dm_messaging_server_no_response">"No response from messaging server. Please check your internet access."</string>
     <string name="c2dm_registration_nok">"Registration failed: "</string>
     <string name="c2dm_unregistration_nok">"Unregistration failed: "</string>
-	
+    <string name="c2dm_registration_unexpected_state">"Unexpected state"</string>	
+        
 	<!-- Strings used in C2DMIntentHandler -->
 	
     <string name="c2dm_error_mssgng_unexpected_response">"Unexpected response from messaging server."</string>
